@@ -1,6 +1,11 @@
 # FV_modelchecker
 ## To Do
-
+* Ask Franjo for help on figuring out transition relation for arbitrary program
+  * In general, the problem of generating a model from the source code
+* @gschare: get cvc5 working on test.py example
+* Study Python API
+* Get two-bit counter example working
+* Study other projects that use cvc5
 
 ## Resources
 [cvc5 documentation](https://cvc5.github.io/)
