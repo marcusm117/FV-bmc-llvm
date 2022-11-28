@@ -71,4 +71,5 @@ def iterative_bounded_model_check(limit):
 
 
 if __name__ == "__main__":
-    iterative_bounded_model_check(5)
+    limit = 10
+    iterative_bounded_model_check(limit)
