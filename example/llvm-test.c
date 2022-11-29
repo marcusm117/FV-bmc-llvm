@@ -2,13 +2,13 @@
 #include <assert.h>
 #include <stdio.h>
 
-int foo() {
-    return 10;
-}
-
 int main() {
-    const int a = 5;
-    const int b = foo();
-    assert(a > b);
-    printf("Done\n");
+    int n = 5;
+    int result = 1;
+
+    while (n > 0) result *= n--;
+
+    printf("%d\n", result);
+    //assert(a == b);
+    //printf("Done\n");
 }
