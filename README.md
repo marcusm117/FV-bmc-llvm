@@ -18,7 +18,7 @@
     1. make sure the pip packages: toml, scikit-build, and Cython are installed
     1. `./configure.sh --python-bindings --auto-download`
     1. `cd build`
-    1. `make`
+    1. make -j cvc5_python_api
     1. `make check`
     1. `make install`
     1. `export PYTHONPATH="<path-to-local-cvc5-repo>/build/src/api/python/:$PYTHONPATH"`
