@@ -1,0 +1,27 @@
+// Input: sequence of LLVM instructions
+// Output: sequence of "states" (i.e. possible values of each variable) with
+//   transition relations (i.e. which states it can jump to next)
+
+for each basic block:
+    // curr_BB = current basic block
+    for each instruction:
+        switch type_of(instr):
+            case of add:
+                state[curr_BB][instr.dest] = state[curr_BB][mul.left] + state[curr_BB][mul.right]
+            case of mul:
+                // like above
+            // ... other arithmetic ...
+            case of br:
+                // different types of br, so this would be more complicated
+                next_state[curr_BB] = { br.left, br.right }
+            case of icmp:
+                // I _think_ we can ignore these
+                switch icmp_type(instr):
+                    case of sgt:
+                    case of slt:
+                    ...
+            // anything else?
+            case of ...
+
+// Result is some data structures that indicate the state of each variable at the end of each basic block, and that indicate where each basic block can lead.
+// This is exactly what we need in a transition relation.
