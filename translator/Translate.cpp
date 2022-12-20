@@ -41,42 +41,33 @@ int main(int argc, char *argv[]) {
     std::cout << " Name: " << m->getName().str() << std::endl;
     std::cout << " Target triple: " << m->getTargetTriple() << std::endl;
 
-    for (auto iter1 = m->getFunctionList().begin();
-         iter1 != m->getFunctionList().end(); iter1++) {
-      Function &f = *iter1;
-      std::cout << " Function: " << f.getName().str() << std::endl;
-      for (auto iter2 = f.getBasicBlockList().begin();
-           iter2 != f.getBasicBlockList().end(); iter2++) {
-        BasicBlock &bb = *iter2;
-        std::cout << "  BasicBlock: " << bb.getName().str() << std::endl;
-        for (auto iter3 = bb.begin(); iter3 != bb.end(); iter3++) {
-          Instruction &inst = *iter3;
-          std::cout << "   Instruction " << &inst << " : " << inst.getOpcodeName();
-        }
-      }
-    }
-
-
     //  bb refers to the basic block number
     // globalVarState[std:make_pair(bb, "y")] = Add(globalVarState[(bb_prev,"x")], 1)
     //std::map< std::pair<BasicBlock &, std::string>, SMT_expr> globalVarState;
     // nextState[1] = { 2, 3, 5 }
     //std::map<BasicBlock &, std::set<BasicBlock &>> nextState;
 
+    std::cout << " Global Variables: " << std::endl;
+    for (Module::global_iterator iter = m->global_begin();
+         iter != m->global_end(); iter++) {
+      std::cout << "   Name: " << iter->getName().str() << std::endl;
+    }
+
+    std::cout << " Function: main" << std::endl;
     Function *mainFunc = m->getFunction("main");
     // Loop over basic blocks in a function
     // Function &Func = ...
     for (BasicBlock &BB : *mainFunc) {
       // Print out the name of the basic block if it has one, and then the
       // number of instructions that it contains
-      errs() << "Basic block (name=" << BB.getName() << ") has "
+      errs() << "   Basic block (name=" << BB.getName() << ") has "
                  << BB.size() << " instructions.\n";
 
         // Loop over instructions in a basic block
         for (Instruction &I : BB) {
            // The next statement works since operator<<(ostream&,...)
            // is overloaded for Instruction&
-           errs() << I << "\n";
+           errs() << "   " << I << "\n";
         }
     }
 }
