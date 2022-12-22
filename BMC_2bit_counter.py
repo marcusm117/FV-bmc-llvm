@@ -31,6 +31,10 @@ def bounded_model_check(k):
 
     # transitions: 00 -> 01 -> 10 -> 11 -> 00
     for i in range(k):
+        # for all possible next states from current BB:
+        #    for all variables x:
+        #        s.add(state[next_BB][x])
+        # OR all the states together for each variable
         # transition for the left bit
         s.add(left[i + 1] == (left[i] == Not(right[i])))
         # transition for the right bit

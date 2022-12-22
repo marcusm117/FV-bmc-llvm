@@ -1,11 +1,16 @@
 # FV_modelchecker
+## How To Use
+To turn LLVM IR file into bitcode:
+`llvm-as test.ll –o test.bc`
+
+`make`
+`./mc test.bc`
+
 ## To Do
-* Ask Franjo for help on figuring out transition relation for arbitrary program
-  * In general, the problem of generating a model from the source code
-* @gschare: get cvc5 working on test.py example
-* Study Python API
-* Get two-bit counter example working
 * Study other projects that use cvc5
+* Greg: make a demo program translating LLVM instructions into SMT problem
+* Marcus: make a BMC for general transition systems
+* + start working on the slides
 
 ## Resources
 [cvc5 documentation](https://cvc5.github.io/)

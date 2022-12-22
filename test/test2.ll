@@ -15,7 +15,7 @@ body:                                                ; preds = %loop, %0
   %5 = add nsw i32 %4, %1
   store i32 %5, i32* @x, align 4
   %6 = icmp sgt i32 %5, 15
-  br i1 %6, label %loop, label %end
+  br i1 %6, label %end, label %loop
 
 loop:                                                ; preds = %body
   br label %body

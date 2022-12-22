@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
 
     ErrorOr<std::unique_ptr<MemoryBuffer>> fileOrErr =
       MemoryBuffer::getFileOrSTDIN(filename);
+    // TODO: fix error handling
     /*
     if (std::error_code ec = fileOrErr.getError()) {
       std::cerr << " Error opening input file: " + ec.message() << std::endl;
