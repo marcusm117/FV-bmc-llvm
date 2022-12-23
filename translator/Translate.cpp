@@ -9,6 +9,7 @@
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/Support/raw_ostream.h>
+#include <json/json.h>
 
 using namespace llvm;
 
@@ -41,8 +42,8 @@ int main(int argc, char *argv[]) {
     }
     */
     std::unique_ptr<Module> m (std::move(moduleOrErr.get()));
-    std::cout << "Successfully read Module:" << std::endl;
-    std::cout << " Name: " << m->getName().str() << std::endl;
+    std::cerr << "Successfully read Module:" << std::endl;
+    std::cerr << " Name: " << m->getName().str() << std::endl;
     //std::cout << " Target triple: " << m->getTargetTriple() << std::endl;
 
     //  bb refers to the basic block number
@@ -52,18 +53,22 @@ int main(int argc, char *argv[]) {
     std::map<std::string, std::set<std::string>> succ_bb;
     std::map<std::string, std::set<std::string>> pred_bb;
 
-    std::cout << " Global Variables: " << std::endl;
+    Json::Value data;
+    Json::Value atoms(Json::arrayValue);
+    std::cerr << "Global Variables: " << std::endl;
     for (Module::global_iterator iter = m->global_begin();
          iter != m->global_end(); iter++) {
-      std::cout << "   Name: " << iter->getName().str() << std::endl;
+        std::cerr << "   Name: " << iter->getName().str() << std::endl;
+        atoms.append(Json::Value(iter->getName().str()));
     }
+    data["atoms"] = atoms;
 
     int tmp_index = 0;
     int bb_index = 0;
     std::ostringstream sbuf;
     sbuf.str("");
     sbuf.clear();
-    std::cout << " Function: main" << std::endl;
+    std::cerr << " Function: main" << std::endl;
     Function *mainFunc = m->getFunction("main");
 
     // Give each basic block a name.
@@ -79,12 +84,20 @@ int main(int argc, char *argv[]) {
     // Get the predecessors and successors of each basic block.
     for (BasicBlock &BB : *mainFunc) {
         std::string bb_name = BB.getName().str();
-        for (BasicBlock *Succ : successors(BB)) {
-            succ_bb[bb_name].insert(Succ->getName().str());
+        Json::Value json_succs(Json::arrayValue);
+        Json::Value json_preds(Json::arrayValue);
+        for (BasicBlock *Succ : successors(&BB)) {
+            std::string succ_name = Succ->getName().str();
+            succ_bb[bb_name].insert(succ_name);
+            json_succs.append(Json::Value(succ_name));
         }
-        for (BasicBlock *Pred : predecessors(BB)) {
-            pred_bb[bb_name].insert(Succ->getName().str());
+        for (BasicBlock *Pred : predecessors(&BB)) {
+            std::string pred_name = Pred->getName().str();
+            pred_bb[bb_name].insert(pred_name);
+            json_preds.append(Json::Value(pred_name));
         }
+        data["succ_bb"][bb_name] = json_succs;
+        data["pred_bb"][bb_name] = json_preds;
 
         // This code is now redundant
         /*
@@ -110,7 +123,7 @@ int main(int argc, char *argv[]) {
     // Parse instructions to understand transition relations.
     for (BasicBlock &BB : *mainFunc) {
         std::string bb_name = BB.getName().str();
-        errs() << bb_name << ":\n";
+        std::cerr << bb_name << ":" << std::endl;
 
         // Loop over instructions in a basic block
         for (Instruction &I : BB) {
@@ -147,51 +160,43 @@ int main(int argc, char *argv[]) {
                 std::string dest = I.getName().str();
                 std::string left;
                 std::string right;
-                std::string op;
 
                 if (ConstantInt* ci = dyn_cast<ConstantInt>(left_val)) {
                     left = std::to_string(ci->getSExtValue());
-                    /*
-                } else if (GlobalValue* gv = dyn_cast<GlobalValue>(left_val)) {
-                    sbuf << "state[" << bb_name << "][" << left_val->getName().str() << "]";
-                    left = sbuf.str();
-                    sbuf.str("");
-                    sbuf.clear();
-                    */
                 } else {
                     left = left_val->getName().str();
                 }
                 if (ConstantInt* ci = dyn_cast<ConstantInt>(right_val)) {
                     right = std::to_string(ci->getSExtValue());
-                    /*
-                } else if (GlobalValue* gv = dyn_cast<GlobalValue>(right_val)) {
-                    sbuf << "state[" << bb_name << "][" << right_val->getName().str() << "]";
-                    right = sbuf.str();
-                    sbuf.str("");
-                    sbuf.clear();
-                    */
                 } else {
                     right = right_val->getName().str();
                 }
                 
+                data["tmp"][dest]["dest"] = dest;
+                data["tmp"][dest]["left"] = left;
+                data["tmp"][dest]["right"] = right;
                 if (opcode == BinaryOperator::Add) {
-                    errs() << dest << " == Add(" << left << ", " << right << ")\n";
+                    data["tmp"][dest]["op"] = "Add";
                 } else if (opcode == BinaryOperator::Mul) {
-                    errs() << dest << " == Mult(" << left << ", " << right << ")\n";
+                    data["tmp"][dest]["op"] = "Mult";
                 } else if (opcode == BinaryOperator::Sub) {
-                    errs() << dest << " == Sub(" << left << ", " << right << ")\n";
+                    data["tmp"][dest]["op"] = "Sub";
                 }
             } else if (opcode == BinaryOperator::Load) {
                 auto val = I.getOperand(0);
                 std::string dest = I.getName().str();
                 std::string global;
                 // loop over all possible pred_bb's to get an OR of all possible transitions we could be doing (i.e. all possible previous states of the global variable)
+                data["tmp"][dest]["op"] = "Load";
+                data["tmp"][dest]["dest"] = dest;
+                data["tmp"][dest]["source"] = val->getName().str();
+                data["tmp"][dest]["bb"] = data["pred_bb"][bb_name];
                 for (auto iter : pred_bb[bb_name]) {
                     sbuf << "state[" << iter << "][" << val->getName().str() << "]";
                     global = sbuf.str();
                     sbuf.str("");
                     sbuf.clear();
-                    errs() << dest << " == " << global << "\n";
+                    std::cerr << dest << " == " << global << std::endl;
                 }
             } else if (opcode == BinaryOperator::Store) {
                 auto val = I.getOperand(0);
@@ -203,7 +208,10 @@ int main(int argc, char *argv[]) {
                 } else {
                     val_str = val->getName().str();
                 }
-                errs() << "state[" << bb_name << "][" << dest << "] == " << val_str << "\n";
+                data["state"][dest][bb_name]["dest"] = dest;
+                data["state"][dest][bb_name]["value"] = val_str;
+                data["state"][dest][bb_name]["bb"] = bb_name;
+                std::cerr << "state[" << bb_name << "][" << dest << "] == " << val_str << std::endl;
             } else {
                 // ignore instruction
                 // other opcodes:
@@ -212,6 +220,8 @@ int main(int argc, char *argv[]) {
             }
         } // endfor
     } //endfor
+
+    std::cout << data << std::endl;
 }
 
 /*
