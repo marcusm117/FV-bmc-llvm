@@ -1,8 +1,8 @@
 {
 	"atoms" : 
 	[
-		"n",
-		"result",
+		"x",
+		"y",
 		".str"
 	],
 	"pred_bb" : 
@@ -41,33 +41,33 @@
 	},
 	"state" : 
 	{
-		"n" : 
+		"x" : 
 		{
 			"l0" : 
 			{
 				"bb" : "l0",
-				"dest" : "n",
+				"dest" : "x",
 				"value" : "5"
 			},
 			"l2" : 
 			{
 				"bb" : "l2",
-				"dest" : "n",
+				"dest" : "x",
 				"value" : "t6"
 			}
 		},
-		"result" : 
+		"y" : 
 		{
 			"l0" : 
 			{
 				"bb" : "l0",
-				"dest" : "result",
+				"dest" : "y",
 				"value" : "2"
 			},
 			"l2" : 
 			{
 				"bb" : "l2",
-				"dest" : "result",
+				"dest" : "y",
 				"value" : "t9"
 			}
 		},
@@ -91,7 +91,7 @@
 			],
 			"dest" : "t10",
 			"op" : "Load",
-			"source" : "result"
+			"source" : "y"
 		},
 		"t13" : 
 		{
@@ -112,7 +112,7 @@
 			],
 			"dest" : "t2",
 			"op" : "Load",
-			"source" : "n"
+			"source" : "x"
 		},
 		"t5" : 
 		{
@@ -122,7 +122,7 @@
 			],
 			"dest" : "t5",
 			"op" : "Load",
-			"source" : "n"
+			"source" : "x"
 		},
 		"t6" : 
 		{
@@ -139,7 +139,7 @@
 			],
 			"dest" : "t8",
 			"op" : "Load",
-			"source" : "result"
+			"source" : "y"
 		},
 		"t9" : 
 		{

@@ -11,9 +11,10 @@
 
 import sys
 import json
-import cvc5
-from cvc5 import Kind
-from cvc5.pythonic import *
+#import cvc5
+from z3 import *
+#from cvc5 import Kind
+#from cvc5.pythonic import *
 
 
 def bounded_model_check(k, atoms, state, tmp, prop):
@@ -51,12 +52,14 @@ def bounded_model_check(k, atoms, state, tmp, prop):
 
     tmp_formulae = {}
     keys = list(tmp.keys())
-    keys.sort()
+    keys.sort(key=lambda x: int(x[1:]))
     for t in keys:
         instr = tmp[t]
+        tmp_formulae[t] = [True]
         if instr['op'] == 'Load':
             for i in range(1,k):
-                tmp_formulae[t][i] = (r[t][i] == r[instr['source']][i-1])
+                tmp_formulae[t].append(r[t][i] == r[instr['source']][i-1])
+                s.add(tmp_formulae[t][-1])
         else:
             for i in range(1,k):
                 if instr['left'].isdecimal():
@@ -68,11 +71,14 @@ def bounded_model_check(k, atoms, state, tmp, prop):
                 else:
                     right = r[instr['right']][i]
                 if instr['op'] == 'Add':
-                    tmp_formulae[t][i] = (r[t][i] == Add(left, right))
+                    tmp_formulae[t].append(r[t][i] == (left + right))
+                    s.add(tmp_formulae[t][-1])
                 elif instr['op'] == 'Mult':
-                    tmp_formulae[t][i] = (r[t][i] == Mult(left, right))
+                    tmp_formulae[t].append(r[t][i] == left * right)
+                    s.add(tmp_formulae[t][-1])
                 elif instr['op'] == 'Sub':
-                    tmp_formulae[t][i] = (r[t][i] == Sub(left, right))
+                    tmp_formulae[t].append(r[t][i] == (left - right))
+                    s.add(tmp_formulae[t][-1])
 
     # transitions
     possible_labels = set()
@@ -82,15 +88,21 @@ def bounded_model_check(k, atoms, state, tmp, prop):
         for label in possible_labels:
             formula_in_label = []
             for atom in atoms:
-                val = state[atom][label]['value']
                 if label in state[atom]:
+                    val = state[atom][label]['value']
                     if val.isdecimal():
                         formula_in_label.append((r[atom][i] == IntVal(int(val))))
                     else:
                         formula_in_label.append((r[atom][i] == tmp_formulae[val][i]))
                 else:
                     formula_in_label.append((r[atom][i] == r[atom][i-1]))
-        s.add(Or(* [f for f in formula.values()]))
+        formula.append(And(*[f for f in formula_in_label]))
+        if len(possible_labels) == 0:
+            break
+        elif len(possible_labels) == 1:
+            s.add(formula[0])
+        else:
+            s.add(Or(* [f for f in formula]))
         
         new_labels = []
         for label in possible_labels:
@@ -118,16 +130,18 @@ def bounded_model_check(k, atoms, state, tmp, prop):
     else:
         # retrieve the satisfying assignment
         m = s.model()
+        print(m)
 
-        # print out each step
         for j in range(k + 1):
             print(f"STEP {j}:  ", end ="")
             for atom in atoms:
-                print(atom + '=' + m[r[atom][j]] + '; ', end='')
+                print(atom + '=' + str(m[r[atom][j]]) + '; ', end='')
             print("")
 
             # break if we find counterexample early
-            if eval(prop.replace("x", f"m[r['x'][{j}]]").replace('y', f"m[r['y'][{j}]]")):
+            #if eval(prop.replace("x", f"m[r['x'][{j}]]").replace('y', f"m[r['y'][{j}]]")):
+            #if m[r['x'][j]] >= 20:
+            if False:
                 print(f"Counterexample found at STEP {j}")
                 return True
 
@@ -159,16 +173,14 @@ if __name__ == "__main__":
     model_path = sys.argv[1]
     limit = int(sys.argv[2])
 
-    f = open(model_path)
-    model = json.load(f)
+    with open(model_path, "r") as f:
+        model = json.load(f)
     atoms = model["atoms"]
     states = model["state"]
-    #preds = model["pred_bb"]
-    #succs = model["succ_bb"]
+    preds = model["pred_bb"]
+    succs = model["succ_bb"]
     tmp = model["tmp"]
 
-    property = "And(x < 20, y == 2)"    # we love not sanitizing our input
+    prop = "And(x < 20, y == 2)"    # we love not sanitizing our input
 
-    iterative_bounded_model_check(limit, atoms, states, tmp, property)
-
-    f.close()
+    iterative_bounded_model_check(limit, atoms, states, tmp, prop)
