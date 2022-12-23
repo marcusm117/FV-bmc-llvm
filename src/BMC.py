@@ -45,28 +45,56 @@ def bounded_model_check(k, atoms, state, tmp, property):
         init_state.append(r[atom][0] == state[atom]["l0"]["value"])
     s.add(And(* init_state))
 
+    # initialize tmp vars
+    for t in tmp.keys():
+        r[t] = [Int(f'{t}_iter_{j}' for j in range(k+1))]
+
+    i = 0
+    tmp_formulae = {}
+    t = f't{i}'
+    while t in tmp:
+        instr = tmp[t]
+        if instr['op'] == 'Load':
+            for i in range(1,k):
+                tmp_formulae[t][i] = Kind.EQUAL(r[t][i], r[instr['source']][i-1])
+        else:
+            for i in range(1,k):
+                if instr['left'].isdecimal():
+                    left = int(instr['left'])
+                else:
+                    left = tmp_formulae[instr['left']][i]
+                if instr['right'].isdecimal():
+                    right = int(instr['right'])
+                else:
+                    right = tmp_formulae[instr['right']][i]
+                if instr['op'] == 'Add':
+                    tmp_formulae[t][i] = Kind.EQUAL(r[t][i], Add(left, right))
+                elif instr['op'] == 'Mult':
+                    tmp_formulae[t][i] = Kind.EQUAL(r[t][i], Mult(left, right))
+                elif instr['op'] == 'Sub':
+                    tmp_formulae[t][i] = Kind.EQUAL(r[t][i], Sub(left, right))
+        i += 1
+        t = f't{i}'
 
     # transitions
-    for j in range(k):
-        formula = []
-
-        for source in trans:
-            dests = trans[source]
-            for dest in dests:
-                formula_sub = []
-                for i in range(len(dest)):
-                    if source[i] == "1":
-                        formula_sub.append(r[i][j])
-                    else:
-                        formula_sub.append(Not(r[i][j]))
-                    if dest[i] == "1":
-                        formula_sub.append(r[i][j+1])
-                    else:
-                        formula_sub.append(Not(r[i][j+1]))
-                formula.append(And(* formula_sub))
-
-        s.add(Or(* formula))
-
+    possible_labels = set()
+    possible_labels.add('l0')
+    for i in range(1,k):
+        formula = {}
+        for label in possible_labels:
+            for atom in atoms:
+                formula[atom] = []
+                if label in state[atom]:
+                    formula[atom].append(Kind.EQUAL(r[atom][i], tmp_formulae[state[atom][label]][i]))
+                else:
+                    formula[atom].append(Kind.EQUAL(r[atom][i], r[atom][i-1]))
+        s.add(Or(* [f for f in formula.values()]))
+        
+        new_labels = []
+        for label in possible_labels:
+            for sl in succs[label]:
+                new_labels.append(sl)
+        possible_labels = set(new_labels)
 
     # property: AG (x < 20)
     if k == 0:
