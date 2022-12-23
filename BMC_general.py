@@ -1,10 +1,12 @@
 # Model for a general Kripke Structure, for example
-#   Atoms: a, b, c, d
-#   States: 0000 (a=0, b=0, c=0, d=0), 0001, 0010, 1101, 1111
-#   Initial State: 0000
-#   Transitions: 0000->0001, 0001->0010, 0010->0001, 0001->1101, 1101->0000
+#   k = 3
+#   atoms = ["a", "b"]
+#   states = ["00", "01", "10", "11"]
+#   trans = {"00":["01"], "01":["10"], "10":["11"]}
+#   state[0] is by default the initial state
 
 # Property: AG (~a1 or ~a2 ... ~an) we will never reach state 11...1
+#   11...1 is always the bad state
 
 
 import cvc5
@@ -20,12 +22,13 @@ def bounded_model_check(k, atoms, states, trans):
     for i in range(len(atoms)):
         r.append([])
         for j in range(k + 1):
-            r[i].append(Bool(f'var_{i}_iter_{j}'))
+            r[i].append(Bool(f"var_{i}_iter_{j}"))
 
     # initialize solver
     s = Solver()
 
-    # initial state: states[0] is defaultly the initial state
+
+    # initial state, states[0] by default the initial state
     init_state = []
     for i in range(len(atoms)):
         if states[0][i] == "1":
@@ -35,10 +38,10 @@ def bounded_model_check(k, atoms, states, trans):
     s.add(And(* init_state))
 
 
-    # transitions, for example
-    # trans = {"0000":["0001"], "0001":["0010","1101"], "0010":["0001"],"1101":"0000"}
+    # transitions
     for j in range(k):
         formula = []
+
         for source in trans:
             dests = trans[source]
             for dest in dests:
@@ -53,8 +56,8 @@ def bounded_model_check(k, atoms, states, trans):
                     else:
                         formula_sub.append(Not(r[i][j+1]))
                 formula.append(And(* formula_sub))
-        s.add(Or(* formula))
 
+        s.add(Or(* formula))
 
 
     # property: AG (~a1 or ~a2 ... ~an) we will never reach state 11...1
@@ -79,25 +82,47 @@ def bounded_model_check(k, atoms, states, trans):
 
         # print out each step
         for j in range(k + 1):
+            s = 1
             print(f"STEP {j}: ", end ="")
             for i in range(len(atoms)):
                 if m[r[i][j]]:
                     print("1", end="")
+                    s = s * 1
                 else:
                     print("0", end="")
+                    s = s * 0
             print("")
 
+            # break if we find counterexample early
+            if s == 1:
+                print(f"Counterexample found at STEP {j}")
+                return True
 
 
-#  Atoms: a, b, c, d
-#  States: 0000 (a=0, b=0, c=0, d=0), 0001, 0010, 1101, 1111
-#  Initial State: 0000
-#  Transitions: 0000->0001, 0001->0010, 0010->0001, 0001->1101, 1101->0000
-#  Property: AG(~a or ~b or ~c or ~d) we will never reach state 1111
+def iterative_bounded_model_check(limit, atoms, states, trans):
+    for k in range(limit+1):
+        if not bounded_model_check(k, atoms, states, trans):
+            continue
+        else:
+            return
+
+
+def parse_input(f):
+    pass
+
+
+
 if __name__ == "__main__":
-    k = 3
-    atoms = ["a", "b"]
-    states = ["00", "01", "10", "11"]
-    trans = {"00":["01"], "01":["10"], "10":["11"]}
+    # uncomment the lines below to test some examples!!!
 
-    bounded_model_check(k, atoms, states, trans)
+    # limit = 5
+    # atoms = ["a", "b"]
+    # states = ["00", "01", "10", "11"]
+    # trans = {"00":["01"], "01":["10"], "10":["11"]}
+    # iterative_bounded_model_check(limit, atoms, states, trans)
+
+    limit = 5
+    atoms = ["a", "b", "c", "d"]
+    states = ["0000", "0001", "0010", "0101", "0011", "1111"]
+    trans = {"0000": ["0001"], "0001": ["0101","0010"], "0101": ["0011"], "0010":["0011","0000"], "0011":["1111"]}
+    iterative_bounded_model_check(limit, atoms, states, trans)

@@ -20,8 +20,8 @@ def bounded_model_check(k):
 
     # initialize all variables
     for i in range(k + 1):
-        left.append(Bool(f'l[{i}]'))
-        right.append(Bool(f'r[{i}]'))
+        left.append(Bool(f"l[{i}]"))
+        right.append(Bool(f"r[{i}]"))
 
     # initialize solver
     s = Solver()
@@ -80,7 +80,5 @@ def iterative_bounded_model_check(limit):
 
 
 if __name__ == "__main__":
-    # limit = 5
-    # iterative_bounded_model_check(limit)
-
-    bounded_model_check(3)
+    limit = 5
+    iterative_bounded_model_check(limit)
