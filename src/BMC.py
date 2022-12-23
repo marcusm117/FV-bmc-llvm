@@ -156,22 +156,9 @@ def iterative_bounded_model_check(limit, atoms, states, tmp, prop):
 
 
 if __name__ == "__main__":
-    # uncomment the lines below to test some examples!!!
 
-    # limit = 5
-    # atoms = ["a", "b"]
-    # states = ["00", "01", "10", "11"]
-    # trans = {"00":["01"], "01":["10"], "10":["11"]}
-    # iterative_bounded_model_check(limit, atoms, states, trans)
-
-    # limit = 5
-    # atoms = ["a", "b", "c", "d"]
-    # states = ["0000", "0001", "0010", "0101", "0011", "1111"]
-    # trans = {"0000": ["0001"], "0001": ["0101","0010"], "0101": ["0011"], "0010":["0011","0000"], "0011":["1111"]}
-    # iterative_bounded_model_check(limit, atoms, states, trans)
-
-    model_path = sys.argv[1]
-    limit = int(sys.argv[2])
+    model_path = "out2.json"
+    limit = 10
 
     with open(model_path, "r") as f:
         model = json.load(f)
@@ -183,4 +170,4 @@ if __name__ == "__main__":
 
     prop = "And(x < 20, y == 2)"    # we love not sanitizing our input
 
-    iterative_bounded_model_check(limit, atoms, states, tmp, prop)
+    bounded_model_check(10, atoms, states, tmp, prop)
