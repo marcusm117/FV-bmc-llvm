@@ -31,7 +31,7 @@ def bounded_model_check(k, atoms, state, tmp, prop):
     rprop = ""
     for c in prop:
         if c in atoms:
-            rprop += "r[" + c + "][i]"
+            rprop += "r['" + c + "'][i]"
         else:
             rprop += c
 
