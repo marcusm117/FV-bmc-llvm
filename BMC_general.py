@@ -9,6 +9,8 @@
 #   11...1 is always the bad state
 
 
+import sys
+import json
 import cvc5
 from cvc5 import Kind
 from cvc5.pythonic import *
@@ -107,10 +109,6 @@ def iterative_bounded_model_check(limit, atoms, states, trans):
             return
 
 
-def parse_input(f):
-    pass
-
-
 
 if __name__ == "__main__":
     # uncomment the lines below to test some examples!!!
@@ -121,8 +119,22 @@ if __name__ == "__main__":
     # trans = {"00":["01"], "01":["10"], "10":["11"]}
     # iterative_bounded_model_check(limit, atoms, states, trans)
 
-    limit = 5
-    atoms = ["a", "b", "c", "d"]
-    states = ["0000", "0001", "0010", "0101", "0011", "1111"]
-    trans = {"0000": ["0001"], "0001": ["0101","0010"], "0101": ["0011"], "0010":["0011","0000"], "0011":["1111"]}
+    # limit = 5
+    # atoms = ["a", "b", "c", "d"]
+    # states = ["0000", "0001", "0010", "0101", "0011", "1111"]
+    # trans = {"0000": ["0001"], "0001": ["0101","0010"], "0101": ["0011"], "0010":["0011","0000"], "0011":["1111"]}
+    # iterative_bounded_model_check(limit, atoms, states, trans)
+
+    model_path = sys.argv[1]
+    limit = int(sys.argv[2])
+
+    f = open(model_path)
+    model = json.load(f)
+    atoms = model["atoms"]
+    states = model["states"]
+    trans = model["trans"]
+
     iterative_bounded_model_check(limit, atoms, states, trans)
+
+    f.close()
+
