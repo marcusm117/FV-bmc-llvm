@@ -16,7 +16,7 @@ from cvc5 import Kind
 from cvc5.pythonic import *
 
 
-def bounded_model_check(k, atoms, state, tmp, property):
+def bounded_model_check(k, atoms, state, tmp, prop):
     # create variables
     r = dict()
 
@@ -27,13 +27,12 @@ def bounded_model_check(k, atoms, state, tmp, property):
             r[atom].append(Int(f"{atom}_iter_{j}"))
 
     # parse property
-    tmp_property = ""
-    for c in property:
+    rprop = ""
+    for c in prop:
         if c in atoms:
-            property += "r[" + c + "][i]"
+            rprop += "r[" + c + "][i]"
         else:
-            property += c
-    property = tmp_property
+            rprop += c
 
     # initialize solver
     s = Solver()
@@ -99,11 +98,11 @@ def bounded_model_check(k, atoms, state, tmp, property):
     # property: AG (x < 20)
     if k == 0:
         i = 0
-        s.add(eval(property))
+        s.add(eval(rprop))
     else:
         props = []
         for i in range(k+1):
-            props.append(eval(property))
+            props.append(eval(rprop))
         s.add(Or(*props))
 
 
@@ -119,19 +118,13 @@ def bounded_model_check(k, atoms, state, tmp, property):
 
         # print out each step
         for j in range(k + 1):
-            s = 1
-            print(f"STEP {j}: ", end ="")
-            for i in range(len(atoms)):
-                if m[r[i][j]]:
-                    print("1", end="")
-                    s = s * 1
-                else:
-                    print("0", end="")
-                    s = s * 0
+            print(f"STEP {j}:  ", end ="")
+            for atom in atoms:
+                print(atom + '=' + m[r[atom][j]] + '; ', end='')
             print("")
 
             # break if we find counterexample early
-            if s == 1:
+            if eval(prop.replace("x", "m[r['x'][j]]")):
                 print(f"Counterexample found at STEP {j}")
                 return True
 
