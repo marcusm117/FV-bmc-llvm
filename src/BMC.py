@@ -11,10 +11,11 @@
 
 import sys
 import json
-#import cvc5
+# import cvc5
+# from cvc5 import Kind
+# from cvc5.pythonic import *
 from z3 import *
-#from cvc5 import Kind
-#from cvc5.pythonic import *
+
 
 
 def bounded_model_check(k, atoms, state, tmp, prop):
