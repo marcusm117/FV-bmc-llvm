@@ -3,6 +3,7 @@
 #include <string>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/ErrorOr.h>
+#include "llvm/IR/CFG.h"
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/Bitcode/BitcodeReader.h>
@@ -47,10 +48,9 @@ int main(int argc, char *argv[]) {
     //  bb refers to the basic block number
     // globalVarState[std:make_pair("body", "y")] = Add(globalVarState[("l0","x")], 1)
     std::map< std::pair<std::string, std::string>, std::string> varState;
-    // next_bb[body] = { 2, 3, 5 }
-    std::map<std::string, std::set<std::string>> next_bb;
+    // succ_bb[body] = { 2, 3, 5 }
+    std::map<std::string, std::set<std::string>> succ_bb;
     std::map<std::string, std::set<std::string>> pred_bb;
-
 
     std::cout << " Global Variables: " << std::endl;
     for (Module::global_iterator iter = m->global_begin();
@@ -65,28 +65,58 @@ int main(int argc, char *argv[]) {
     sbuf.clear();
     std::cout << " Function: main" << std::endl;
     Function *mainFunc = m->getFunction("main");
-    // Loop over basic blocks in a function
-    // Function &Func = ...
+
+    // Give each basic block a name.
     for (BasicBlock &BB : *mainFunc) {
-      // Print out the name of the basic block if it has one, and then the
-      // number of instructions that it contains
         if (!BB.hasName()) {
             sbuf << "l" << bb_index++;
             BB.setName(sbuf.str());
             sbuf.str("");
             sbuf.clear();
         }
+    }
+
+    // Get the predecessors and successors of each basic block.
+    for (BasicBlock &BB : *mainFunc) {
         std::string bb_name = BB.getName().str();
-        errs() << "   Basic block (name=" << bb_name << ") has "
-                   << BB.size() << " instructions.\n";
+        for (BasicBlock *Succ : successors(BB)) {
+            succ_bb[bb_name].insert(Succ->getName().str());
+        }
+        for (BasicBlock *Pred : predecessors(BB)) {
+            pred_bb[bb_name].insert(Succ->getName().str());
+        }
+
+        // This code is now redundant
+        /*
+        if (I.getOpcode() == BinaryOperator::Br) {
+            if (I.getNumOperands() == 1) {
+                // unconditional jump
+                std::string dest = I.getOperand(0)->getName().str();
+                succ_bb[bb_name].insert(dest);
+                pred_bb[dest].insert(bb_name);
+            } else if (I.getNumOperands() == 3) {
+                // conditional jump
+                std::string left = I.getOperand(1)->getName().str();
+                std::string right = I.getOperand(2)->getName().str();
+                next_bb[bb_name].insert(left);
+                next_bb[bb_name].insert(right);
+                pred_bb[left].insert(bb_name);
+                pred_bb[right].insert(bb_name);
+            }
+        }
+        */
+    }
+
+    // Parse instructions to understand transition relations.
+    for (BasicBlock &BB : *mainFunc) {
+        std::string bb_name = BB.getName().str();
+        errs() << bb_name << ":\n";
 
         // Loop over instructions in a basic block
         for (Instruction &I : BB) {
-            // The next statement works since operator<<(ostream&,...)
-            // is overloaded for Instruction&
-
             auto opcode = I.getOpcode();
 
+            // Assign names to tmp variables.
             if (opcode != BinaryOperator::Store &&
                 opcode != BinaryOperator::Br) {
                 if (!I.hasName()) {
@@ -95,7 +125,6 @@ int main(int argc, char *argv[]) {
                     sbuf.str("");
                     sbuf.clear();
                 }
-                //errs() << "       Dest: " << I.getName() << "\n";
 
                 for (int i=0; i < I.getNumOperands(); i++) {
                     auto operand = I.getOperand(i);
@@ -105,11 +134,10 @@ int main(int argc, char *argv[]) {
                         sbuf.str("");
                         sbuf.clear();
                     }
-                    //errs() << "       Op " << i << ": " << operand->getName() << "\n";
                 }
             }
-            //errs() << "   " << I << "\n";
  
+            // Process Binops.
             if (opcode == BinaryOperator::Add ||
                 opcode == BinaryOperator::Mul ||
                 opcode == BinaryOperator::Sub) {
@@ -157,11 +185,14 @@ int main(int argc, char *argv[]) {
                 auto val = I.getOperand(0);
                 std::string dest = I.getName().str();
                 std::string global;
-                sbuf << "state[" << bb_name << "][" << val->getName().str() << "]";
-                global = sbuf.str();
-                sbuf.str("");
-                sbuf.clear();
-                errs() << dest << " == " << global << "\n";
+                // loop over all possible pred_bb's to get an OR of all possible transitions we could be doing (i.e. all possible previous states of the global variable)
+                for (auto iter : pred_bb[bb_name]) {
+                    sbuf << "state[" << iter << "][" << val->getName().str() << "]";
+                    global = sbuf.str();
+                    sbuf.str("");
+                    sbuf.clear();
+                    errs() << dest << " == " << global << "\n";
+                }
             } else if (opcode == BinaryOperator::Store) {
                 auto val = I.getOperand(0);
                 auto dest_val = I.getOperand(1);
@@ -173,21 +204,6 @@ int main(int argc, char *argv[]) {
                     val_str = val->getName().str();
                 }
                 errs() << "state[" << bb_name << "][" << dest << "] == " << val_str << "\n";
-            } else if (opcode == BinaryOperator::Br) {
-                if (I.getNumOperands() == 1) {
-                    // unconditional jump
-                    std::string dest = I.getOperand(0)->getName().str();
-                    next_bb[bb_name].insert(dest);
-                    pred_bb[dest].insert(bb_name);
-                } else if (I.getNumOperands() == 3) {
-                    // conditional jump
-                    std::string left = I.getOperand(1)->getName().str();
-                    std::string right = I.getOperand(2)->getName().str();
-                    next_bb[bb_name].insert(left);
-                    next_bb[bb_name].insert(right);
-                    pred_bb[left].insert(bb_name);
-                    pred_bb[right].insert(bb_name);
-                }
             } else {
                 // ignore instruction
                 // other opcodes:
