@@ -1,0 +1,125 @@
+{
+	"atoms" : 
+	[
+		"x",
+		"y",
+		".str"
+	],
+	"pred_bb" : 
+	{
+		"body" : 
+		[
+			"loop",
+			"l0"
+		],
+		"end" : 
+		[
+			"body"
+		],
+		"l0" : [],
+		"loop" : 
+		[
+			"body"
+		]
+	},
+	"state" : 
+	{
+		"x" : 
+		{
+			"body" : 
+			{
+				"bb" : "body",
+				"dest" : "x",
+				"value" : "t6"
+			},
+			"l0" : 
+			{
+				"bb" : "l0",
+				"dest" : "x",
+				"value" : "0"
+			}
+		},
+		"y" : 
+		{
+			"l0" : 
+			{
+				"bb" : "l0",
+				"dest" : "y",
+				"value" : "2"
+			}
+		}
+	},
+	"succ_bb" : 
+	{
+		"body" : 
+		[
+			"end",
+			"loop"
+		],
+		"end" : [],
+		"l0" : 
+		[
+			"body"
+		],
+		"loop" : 
+		[
+			"body"
+		]
+	},
+	"tmp" : 
+	{
+		"t0" : 
+		{
+			"bb" : 
+			[
+				"loop",
+				"l0"
+			],
+			"dest" : "t0",
+			"op" : "Load",
+			"source" : "x"
+		},
+		"t1" : 
+		{
+			"bb" : 
+			[
+				"loop",
+				"l0"
+			],
+			"dest" : "t1",
+			"op" : "Load",
+			"source" : "y"
+		},
+		"t2" : 
+		{
+			"dest" : "t2",
+			"left" : "t1",
+			"op" : "Mult",
+			"right" : "3"
+		},
+		"t4" : 
+		{
+			"dest" : "t4",
+			"left" : "t2",
+			"op" : "Add",
+			"right" : "1"
+		},
+		"t6" : 
+		{
+			"dest" : "t6",
+			"left" : "t4",
+			"op" : "Add",
+			"right" : "t0"
+		},
+		"t9" : 
+		{
+			"bb" : 
+			[
+				"body"
+			],
+			"dest" : "t9",
+			"op" : "Load",
+			"source" : "x"
+		}
+	}
+}

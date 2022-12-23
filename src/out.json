@@ -1,0 +1,152 @@
+{
+	"atoms" : 
+	[
+		"n",
+		"result",
+		".str"
+	],
+	"pred_bb" : 
+	{
+		"l0" : [],
+		"l1" : 
+		[
+			"l2",
+			"l0"
+		],
+		"l2" : 
+		[
+			"l1"
+		],
+		"l3" : 
+		[
+			"l1"
+		]
+	},
+	"succ_bb" : 
+	{
+		"l0" : 
+		[
+			"l1"
+		],
+		"l1" : 
+		[
+			"l2",
+			"l3"
+		],
+		"l2" : 
+		[
+			"l1"
+		],
+		"l3" : []
+	},
+	"state" : 
+	{
+		"n" : 
+		{
+			"l0" : 
+			{
+				"bb" : "l0",
+				"dest" : "n",
+				"value" : "5"
+			},
+			"l2" : 
+			{
+				"bb" : "l2",
+				"dest" : "n",
+				"value" : "t6"
+			}
+		},
+		"result" : 
+		{
+			"l0" : 
+			{
+				"bb" : "l0",
+				"dest" : "result",
+				"value" : "2"
+			},
+			"l2" : 
+			{
+				"bb" : "l2",
+				"dest" : "result",
+				"value" : "t9"
+			}
+		},
+		"t0" : 
+		{
+			"l0" : 
+			{
+				"bb" : "l0",
+				"dest" : "t0",
+				"value" : "0"
+			}
+		}
+	},
+	"tmp" : 
+	{
+		"t10" : 
+		{
+			"bb" : 
+			[
+				"l1"
+			],
+			"dest" : "t10",
+			"op" : "Load",
+			"source" : "result"
+		},
+		"t13" : 
+		{
+			"bb" : 
+			[
+				"l1"
+			],
+			"dest" : "t13",
+			"op" : "Load",
+			"source" : "t0"
+		},
+		"t2" : 
+		{
+			"bb" : 
+			[
+				"l2",
+				"l0"
+			],
+			"dest" : "t2",
+			"op" : "Load",
+			"source" : "n"
+		},
+		"t5" : 
+		{
+			"bb" : 
+			[
+				"l1"
+			],
+			"dest" : "t5",
+			"op" : "Load",
+			"source" : "n"
+		},
+		"t6" : 
+		{
+			"dest" : "t6",
+			"left" : "t5",
+			"op" : "Add",
+			"right" : "-1"
+		},
+		"t8" : 
+		{
+			"bb" : 
+			[
+				"l1"
+			],
+			"dest" : "t8",
+			"op" : "Load",
+			"source" : "result"
+		},
+		"t9" : 
+		{
+			"dest" : "t9",
+			"left" : "t8",
+			"op" : "Mult",
+			"right" : "t5"
+		}
+	}
+}
