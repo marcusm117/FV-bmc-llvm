@@ -54,7 +54,16 @@ def bounded_model_check(k):
 
         # print out each step
         for i in range(k + 1):
-            print(f"STEP {i}: l[{i}] = {m[left[i]]}, r[{i}] = {m[right[i]]}")
+            print(f"STEP {i}: ", end="")
+            if m[left[i]]:
+                print("1", end="")
+            else:
+                print("0", end="")
+            if m[right[i]]:
+                print("1", end="")
+            else:
+                print("0", end="")
+            print("")
 
             # break if we find counterexample early
             if m[left[i]] and m[right[i]]:
@@ -71,5 +80,7 @@ def iterative_bounded_model_check(limit):
 
 
 if __name__ == "__main__":
-    limit = 10
-    iterative_bounded_model_check(limit)
+    # limit = 5
+    # iterative_bounded_model_check(limit)
+
+    bounded_model_check(3)
