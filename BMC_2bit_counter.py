@@ -20,8 +20,8 @@ def bounded_model_check(k):
 
     # initialize all variables
     for i in range(k + 1):
-        left.append(Bool(f'l[{i}]'))
-        right.append(Bool(f'r[{i}]'))
+        left.append(Bool(f"l[{i}]"))
+        right.append(Bool(f"r[{i}]"))
 
     # initialize solver
     s = Solver()
@@ -54,7 +54,16 @@ def bounded_model_check(k):
 
         # print out each step
         for i in range(k + 1):
-            print(f"STEP {i}: l[{i}] = {m[left[i]]}, r[{i}] = {m[right[i]]}")
+            print(f"STEP {i}: ", end="")
+            if m[left[i]]:
+                print("1", end="")
+            else:
+                print("0", end="")
+            if m[right[i]]:
+                print("1", end="")
+            else:
+                print("0", end="")
+            print("")
 
             # break if we find counterexample early
             if m[left[i]] and m[right[i]]:
@@ -71,5 +80,5 @@ def iterative_bounded_model_check(limit):
 
 
 if __name__ == "__main__":
-    limit = 10
+    limit = 5
     iterative_bounded_model_check(limit)
