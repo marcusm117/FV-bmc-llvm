@@ -1,0 +1,71 @@
+// Input: sequence of LLVM instructions
+// Output: sequence of "states" (i.e. possible values of each variable) with
+//   transition relations (i.e. which states it can jump to next)
+
+for each basic block:
+    // curr_BB = current basic block
+    for each instruction:
+        switch type_of(instr):
+            case of add:
+                state[curr_BB][instr.dest] = SMT_EXPR(state[curr_BB][add.left] + state[curr_BB][add.right])
+            case of mul:
+                // like above
+            // ... other arithmetic ...
+            case of br:
+                // different types of br, so this would be more complicated
+                next_state[curr_BB].add({ br.left, br.right })
+            case of icmp:
+                // I _think_ we can ignore these
+                switch icmp_type(instr):
+                    case of sgt:
+                    case of slt:
+                    ...
+            // anything else?
+            case of load:
+                // assign tmp variable to have value of global var
+            case of store:
+                // assign global variable to have value of tmp var
+            case of ...
+
+// only write properties about global variables
+// every time a global var is stored, add a new transition relation for it
+//  (multiple stores in same BB for same variable are "OR"d together)
+
+// Result is some data structures that indicate the state of each variable at the end of each basic block, and that indicate where each basic block can lead.
+// This is exactly what we need in a transition relation.
+
+/*
+Example:
+
+LLVM IR
+    global x
+    global y
+
+    label 1:
+        store 0 in x
+        store 2 in y
+        jmp 2
+
+    label 2:
+        t0 = load y
+        t1 = t0 * 3
+        t2 = t1 + 1
+        store t2 in x
+        br 2, end
+
+    VVVVVVVVVVVVV
+
+BMC
+    k=1: labels {1}
+    x==0
+    y==2
+
+    k=2: labels {2}
+    x==(old_y*3) + 1
+    y==old_y
+
+    k=3: labels {2,end}
+    x==(old_y*3) + 1
+    y==old_y
+
+*/
