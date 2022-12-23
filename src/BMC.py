@@ -21,6 +21,7 @@ def bounded_model_check(k, atoms, state, tmp, prop):
     r = dict()
 
     # initialize all variables
+    atoms = [a for a in atoms if a in state]
     for atom in atoms:
         r[atom] = []
         for j in range(k + 1):
@@ -46,47 +47,49 @@ def bounded_model_check(k, atoms, state, tmp, prop):
 
     # initialize tmp vars
     for t in tmp.keys():
-        r[t] = [Int(f'{t}_iter_{j}' for j in range(k+1))]
+        r[t] = [Int(f'{t}_iter_{j}') for j in range(k+1)]
 
-    i = 0
     tmp_formulae = {}
-    t = f't{i}'
-    while t in tmp:
+    keys = list(tmp.keys())
+    keys.sort()
+    for t in keys:
         instr = tmp[t]
         if instr['op'] == 'Load':
             for i in range(1,k):
-                tmp_formulae[t][i] = Kind.EQUAL(r[t][i], r[instr['source']][i-1])
+                tmp_formulae[t][i] = (r[t][i] == r[instr['source']][i-1])
         else:
             for i in range(1,k):
                 if instr['left'].isdecimal():
-                    left = int(instr['left'])
+                    left = IntVal(int(instr['left']))
                 else:
-                    left = tmp_formulae[instr['left']][i]
+                    left = r[instr['left']][i]
                 if instr['right'].isdecimal():
-                    right = int(instr['right'])
+                    right = IntVal(int(instr['right']))
                 else:
-                    right = tmp_formulae[instr['right']][i]
+                    right = r[instr['right']][i]
                 if instr['op'] == 'Add':
-                    tmp_formulae[t][i] = Kind.EQUAL(r[t][i], Add(left, right))
+                    tmp_formulae[t][i] = (r[t][i] == Add(left, right))
                 elif instr['op'] == 'Mult':
-                    tmp_formulae[t][i] = Kind.EQUAL(r[t][i], Mult(left, right))
+                    tmp_formulae[t][i] = (r[t][i] == Mult(left, right))
                 elif instr['op'] == 'Sub':
-                    tmp_formulae[t][i] = Kind.EQUAL(r[t][i], Sub(left, right))
-        i += 1
-        t = f't{i}'
+                    tmp_formulae[t][i] = (r[t][i] == Sub(left, right))
 
     # transitions
     possible_labels = set()
     possible_labels.add('l0')
     for i in range(1,k):
-        formula = {}
+        formula = []
         for label in possible_labels:
+            formula_in_label = []
             for atom in atoms:
-                formula[atom] = []
+                val = state[atom][label]['value']
                 if label in state[atom]:
-                    formula[atom].append(Kind.EQUAL(r[atom][i], tmp_formulae[state[atom][label]][i]))
+                    if val.isdecimal():
+                        formula_in_label.append((r[atom][i] == IntVal(int(val))))
+                    else:
+                        formula_in_label.append((r[atom][i] == tmp_formulae[val][i]))
                 else:
-                    formula[atom].append(Kind.EQUAL(r[atom][i], r[atom][i-1]))
+                    formula_in_label.append((r[atom][i] == r[atom][i-1]))
         s.add(Or(* [f for f in formula.values()]))
         
         new_labels = []
@@ -124,14 +127,14 @@ def bounded_model_check(k, atoms, state, tmp, prop):
             print("")
 
             # break if we find counterexample early
-            if eval(prop.replace("x", "m[r['x'][j]]")):
+            if eval(prop.replace("x", f"m[r['x'][{j}]]").replace('y', f"m[r['y'][{j}]]")):
                 print(f"Counterexample found at STEP {j}")
                 return True
 
 
-def iterative_bounded_model_check(limit, atoms, states, trans):
+def iterative_bounded_model_check(limit, atoms, states, tmp, prop):
     for k in range(limit+1):
-        if not bounded_model_check(k, atoms, states, trans):
+        if not bounded_model_check(k, atoms, states, tmp, prop):
             continue
         else:
             return
@@ -160,8 +163,8 @@ if __name__ == "__main__":
     model = json.load(f)
     atoms = model["atoms"]
     states = model["state"]
-    trans = model["pred_bb"]
-    succs = model["succ_bb"]
+    #preds = model["pred_bb"]
+    #succs = model["succ_bb"]
     tmp = model["tmp"]
 
     property = "And(x < 20, y == 2)"    # we love not sanitizing our input
