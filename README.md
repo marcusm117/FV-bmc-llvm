@@ -31,3 +31,9 @@ To turn LLVM IR file into bitcode:
 * Toy Model Checker
   * Graphic interface where users can fill in variables
     * AG(x == y), fill in x and y with LLVM IR variables
+
+## Limitations
+* Can only `store` each variable once per basic block
+* Only supports basic LLVM instructions: no pointers, structs, or calls
+* Only one LLVM function at a time
+* Only AG properties
