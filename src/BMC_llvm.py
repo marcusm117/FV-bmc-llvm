@@ -158,8 +158,8 @@ def iterative_bounded_model_check(limit, atoms, states, tmp, prop):
 
 if __name__ == "__main__":
 
-    model_path = "out2.json"
-    limit = 10
+    model_path = sys.argv[1]
+    limit = int(sys.argv[2])
 
     with open(model_path, "r") as f:
         model = json.load(f)

@@ -125,8 +125,9 @@ if __name__ == "__main__":
     # trans = {"0000": ["0001"], "0001": ["0101","0010"], "0101": ["0011"], "0010":["0011","0000"], "0011":["1111"]}
     # iterative_bounded_model_check(limit, atoms, states, trans)
 
-    model_path = "test_model.json"
-    limit = 5
+
+    model_path = sys.argv[1]
+    limit = int(sys.argv[2])
 
     f = open(model_path)
     model = json.load(f)
