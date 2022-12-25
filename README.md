@@ -2,7 +2,8 @@
 ## Dependencies
 [cvc5 documentation](https://cvc5.github.io/)
 * Install: `pip install cvc5`
-* Import: `import cvc5`
+* Import: `import cvc5`   
+
 [Z3 documentation](https://github.com/Z3Prover/z3/wiki)
 * Install: `pip install z3-solver`
 * Import: `from z3 import *`
