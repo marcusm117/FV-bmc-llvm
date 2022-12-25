@@ -1,4 +1,14 @@
 # FV_modelchecker
+## Dependencies
+[cvc5 documentation](https://cvc5.github.io/)
+* Install: `pip install cvc5`
+* Import: `import cvc5`   
+
+[Z3 documentation](https://github.com/Z3Prover/z3/wiki)
+* Install: `pip install z3-solver`
+* Import: `from z3 import *`
+
+
 ## How To Use
 To turn LLVM IR file into bitcode:
 `llvm-as test.ll –o test.bc`
@@ -6,17 +16,6 @@ To turn LLVM IR file into bitcode:
 `make`
 `./mc test.bc`
 
-## To Do
-* Study other projects that use cvc5
-* Greg: make a demo program translating LLVM instructions into SMT problem
-* Marcus: make a BMC for general transition systems
-* + start working on the slides
-
-## Resources
-[cvc5 documentation](https://cvc5.github.io/)
-* [Python API](https://cvc5.github.io/docs/cvc5-1.0.2/api/python/python.html)
-  * Install: `pip install cvc5` and import as `import cvc5`
-* [C++ API](https://cvc5.github.io/docs/cvc5-1.0.2/api/cpp/cpp.html)
 
 ## Interface
 * Toy Model Checker
