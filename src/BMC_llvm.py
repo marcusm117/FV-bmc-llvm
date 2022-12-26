@@ -133,7 +133,7 @@ def bounded_model_check(k, atoms, state, tmp, prop):
         m = s.model()
         print(m)
 
-        for j in range(k + 1):
+        for j in range(k):
             print(f"STEP {j}:  ", end ="")
             for atom in atoms:
                 print(atom + '=' + str(m[r[atom][j]]) + '; ', end='')
@@ -171,4 +171,4 @@ if __name__ == "__main__":
 
     prop = "And(x < 20, y == 2)"    # we love not sanitizing our input
 
-    bounded_model_check(10, atoms, states, tmp, prop)
+    bounded_model_check(limit, atoms, states, tmp, prop)
