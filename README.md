@@ -51,9 +51,9 @@ Counterexample found at STEP 4
 2. `llvm-as [test.ll] –o [test.bc]`
 3. `./mc [test.bc]`
 4. For example, when we run `llvm-as test\test2.ll –o test2.bc` and `./mc test2.bc`, we should get a `out2.json` as output, which is the Interdemia Model that can be further processed by `BMC_llvm.py`
-
-
-
+    
+     
+     
 ### BMC for LLVM Intermediate Model
 1. `python3 BMC_llvm.py [out.json] [limit]`
 2. For example, when we run `python3 BMC_llvm.py test\out2.json 4`, the result should be the following
