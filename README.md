@@ -47,7 +47,7 @@ Counterexample found at STEP 4
    
      
 ### Translator from LLVM IR to Intermediate Model
-1. `make`
+1. `make`, which will generate the executable file named "translate"
 2. `llvm-as [test.ll] –o [test.bc]`
 3. `./translate [test.bc] > [out.json]`
 4. For example, when we run `llvm-as test\test2.ll –o test2.bc` and `./translate test2.bc > out2.json`, we should get a `out2.json` as output, which is the Interdemia Model that can be further processed by `BMC_llvm.py`       
